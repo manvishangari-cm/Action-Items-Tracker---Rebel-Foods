@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Action Items Tracker — Rebel Foods</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  :root{
+    --bg:#f8f9fb;--surface:#ffffff;--surface2:#f1f3f6;--border:#e2e6ed;--border2:#d0d6e0;
+    --accent:#2563eb;--accent-light:#eff4ff;--accent2:#dc6b1f;--accent2-light:#fff4ed;
+    --text:#0f172a;--text2:#374151;--muted:#6b7280;--muted2:#9ca3af;
+    --green:#16a34a;--green-light:#f0fdf4;--green-border:#bbf7d0;
+    --yellow:#d97706;--yellow-light:#fffbeb;--yellow-border:#fde68a;
+    --red:#dc2626;--red-light:#fef2f2;--red-border:#fecaca;
+    --blue-light:#eff6ff;--blue-border:#bfdbfe;
+    --shadow:0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:0 4px 12px rgba(0,0,0,0.1),0 2px 4px rgba(0,0,0,0.06);
+  }
+  body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;line-height:1.5;}
+
+  /* HEADER */
+  header{padding:0 32px;height:60px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--surface);z-index:100;box-shadow:var(--shadow);}
+  .logo{font-weight:700;font-size:1rem;color:var(--text);letter-spacing:-0.02em;}
+  .logo span{color:var(--accent);}
+  .header-right{display:flex;align-items:center;gap:16px;}
+  .header-meta{font-size:0.75rem;color:var(--muted);text-align:right;line-height:1.6;}
+  .header-meta strong{color:var(--text2);font-weight:600;}
+  .user-chip{display:flex;align-items:center;gap:7px;background:var(--accent-light);border:1px solid var(--blue-border);border-radius:20px;padding:5px 12px 5px 7px;cursor:pointer;transition:all 0.15s;}
+  .user-chip:hover{background:#dbeafe;}
+  .user-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);color:#fff;font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .user-chip-name{font-size:0.75rem;font-weight:600;color:var(--accent);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+  /* STATS */
+  .stats-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+  .stat{flex:1;padding:16px 24px;border-right:1px solid var(--border);transition:background 0.15s;cursor:pointer;}
+  .stat:last-child{border-right:none;}
+  .stat:hover{background:var(--surface2);}
+  .stat-num{font-size:1.75rem;font-weight:700;line-height:1;letter-spacing:-0.02em;}
+  .stat-label{font-size:0.68rem;color:var(--muted);margin-top:3px;letter-spacing:0.06em;text-transform:uppercase;font-weight:500;}
+  .stat.open .stat-num{color:var(--accent);}
+  .stat.progress .stat-num{color:var(--yellow);}
+  .stat.overdue .stat-num{color:var(--red);}
+  .stat.done .stat-num{color:var(--green);}
+
+  /* TOOLBAR */
+  .toolbar{padding:14px 24px;display:flex;gap:10px;align-items:center;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .btn-primary{background:var(--accent);color:#fff;border:none;padding:8px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:0.8rem;cursor:pointer;border-radius:6px;transition:all 0.15s;white-space:nowrap;}
+  .btn-primary:hover{background:#1d4ed8;box-shadow:0 2px 8px rgba(37,99,235,0.3);}
+  .btn-reminder{background:var(--accent2-light);color:var(--accent2);border:1px solid #fbd5b5;padding:8px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:0.8rem;cursor:pointer;border-radius:6px;transition:all 0.15s;white-space:nowrap;}
+  .btn-reminder:hover{background:#ffe8d6;}
+  .btn-people{background:var(--surface2);color:var(--text2);border:1px solid var(--border);padding:8px 14px;font-family:'Inter',sans-serif;font-weight:500;font-size:0.8rem;cursor:pointer;border-radius:6px;transition:all 0.15s;white-space:nowrap;}
+  .btn-people:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+  .filter-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:7px 14px;font-family:'Inter',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;border-radius:6px;transition:all 0.15s;}
+  .filter-btn:hover,.filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light);font-weight:600;}
+  .search-wrap{margin-left:auto;position:relative;}
+  .search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted2);font-size:1rem;pointer-events:none;}
+  .search-input{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 12px 8px 30px;font-family:'Inter',sans-serif;font-size:0.78rem;width:240px;outline:none;border-radius:6px;transition:all 0.15s;}
+  .search-input:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+  .search-input::placeholder{color:var(--muted2);}
+
+  /* TABLE */
+  .table-wrapper{padding:20px 24px 80px;}
+  .table-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;}
+  thead th{padding:11px 16px;text-align:left;font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface2);font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;}
+  thead th:hover{color:var(--text2);}
+  tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
+  tbody tr:last-child{border-bottom:none;}
+  tbody tr:hover{background:#fafbfc;}
+  td{padding:12px 16px;font-size:0.82rem;vertical-align:middle;color:var(--text2);}
+
+  .action-text{font-weight:500;color:var(--text);max-width:230px;line-height:1.45;}
+  .action-text.done-text{text-decoration:line-through;color:var(--muted);font-weight:400;}
+  .meeting-tag{font-size:0.7rem;padding:3px 8px;border:1px solid var(--border);color:var(--muted);background:var(--surface2);border-radius:4px;white-space:nowrap;font-weight:500;}
+  .due-date{font-size:0.78rem;white-space:nowrap;font-weight:500;font-family:'IBM Plex Mono',monospace;}
+  .due-date.overdue{color:var(--red);}
+  .due-date.due-soon{color:var(--yellow);}
+  .due-date.ok{color:var(--muted);}
+
+  /* OWNER CHIP */
+  .owner-chip{display:inline-flex;align-items:center;gap:5px;background:var(--accent-light);border:1px solid var(--blue-border);border-radius:12px;padding:3px 9px 3px 5px;max-width:180px;}
+  .owner-avatar{width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:0.6rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .owner-name{font-size:0.72rem;font-weight:600;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .owner-plain{font-size:0.78rem;color:var(--accent);font-weight:500;}
+
+  .priority-badge{font-size:0.68rem;padding:2px 8px;border-radius:10px;font-weight:600;letter-spacing:0.04em;white-space:nowrap;}
+  .p-high{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);}
+  .p-med{background:var(--yellow-light);color:var(--yellow);border:1px solid var(--yellow-border);}
+  .p-low{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+  .status-badge{font-size:0.7rem;padding:4px 10px;border-radius:10px;font-weight:600;cursor:pointer;border:1px solid transparent;transition:all 0.15s;white-space:nowrap;}
+  .s-open{background:var(--blue-light);color:var(--accent);border-color:var(--blue-border);}
+  .s-open:hover{background:#dbeafe;}
+  .s-progress{background:var(--yellow-light);color:var(--yellow);border-color:var(--yellow-border);}
+  .s-progress:hover{background:#fef3c7;}
+  .s-done{background:var(--green-light);color:var(--green);border-color:var(--green-border);}
+  .s-done:hover{background:#dcfce7;}
+
+  /* COMMENTS */
+  .comment-cell{max-width:190px;min-width:120px;}
+  .comment-display{font-size:0.78rem;color:var(--text2);line-height:1.5;cursor:pointer;border-radius:4px;padding:4px 6px;margin:-4px -6px;transition:all 0.15s;white-space:pre-wrap;word-break:break-word;max-height:54px;overflow:hidden;}
+  .comment-display:hover{background:var(--surface2);}
+  .comment-display.empty{color:var(--muted2);font-style:italic;font-size:0.75rem;}
+  .comment-input-inline{background:var(--surface);border:1px solid var(--accent);color:var(--text);padding:6px 8px;font-family:'Inter',sans-serif;font-size:0.78rem;width:100%;outline:none;resize:none;min-height:58px;line-height:1.5;border-radius:4px;box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+
+  .row-actions{display:flex;gap:5px;align-items:center;}
+  .icon-btn{background:none;border:1px solid var(--border);color:var(--muted);width:28px;height:28px;cursor:pointer;font-size:0.75rem;display:flex;align-items:center;justify-content:center;transition:all 0.15s;border-radius:5px;}
+  .icon-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+  .icon-btn.delete:hover{border-color:var(--red);color:var(--red);background:var(--red-light);}
+
+  .empty-state{text-align:center;padding:64px 20px;color:var(--muted);font-size:0.85rem;}
+  .empty-state .big{font-size:2.5rem;margin-bottom:12px;}
+
+  /* MODALS */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.45);backdrop-filter:blur(4px);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn 0.2s ease;}
+  .modal-overlay.hidden{display:none;}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:10px;width:100%;max-width:560px;animation:slideUp 0.22s ease;max-height:90vh;display:flex;flex-direction:column;box-shadow:var(--shadow-md);}
+  .modal.wide{max-width:700px;}
+  .modal.narrow{max-width:420px;}
+  @keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .modal-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+  .modal-title{font-weight:700;font-size:0.95rem;color:var(--text);}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:all 0.15s;}
+  .modal-close:hover{background:var(--surface2);color:var(--text);}
+  .modal-body{padding:22px 24px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;}
+  .modal-footer{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0;background:var(--surface2);border-radius:0 0 10px 10px;}
+
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-label{font-size:0.72rem;letter-spacing:0.04em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+  .form-input,.form-select,.form-textarea{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 12px;font-family:'Inter',sans-serif;font-size:0.82rem;outline:none;width:100%;transition:all 0.15s;border-radius:6px;}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+  .form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;appearance:none;}
+  .form-textarea{resize:vertical;min-height:72px;line-height:1.5;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .btn-ghost{background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:8px 16px;font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;border-radius:6px;transition:all 0.15s;}
+  .btn-ghost:hover{border-color:var(--border2);background:var(--surface2);}
+
+  /* OWNER SELECT in form */
+  .owner-select-wrap{position:relative;}
+  .owner-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow-md);z-index:50;max-height:200px;overflow-y:auto;display:none;}
+  .owner-dropdown.show{display:block;}
+  .owner-option{padding:9px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.82rem;transition:background 0.1s;}
+  .owner-option:hover{background:var(--accent-light);}
+  .owner-option-avatar{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:0.65rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .owner-option-info{display:flex;flex-direction:column;line-height:1.3;}
+  .owner-option-name{font-weight:600;color:var(--text);}
+  .owner-option-email{font-size:0.7rem;color:var(--muted);}
+  .owner-option-add{color:var(--accent);font-style:italic;}
+
+  /* PEOPLE DIRECTORY MODAL */
+  .people-list{display:flex;flex-direction:column;gap:10px;}
+  .person-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);}
+  .person-avatar-lg{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-size:0.85rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .person-info{flex:1;min-width:0;}
+  .person-name{font-weight:600;font-size:0.85rem;color:var(--text);}
+  .person-email{font-size:0.75rem;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .person-you{font-size:0.65rem;background:var(--accent-light);color:var(--accent);border:1px solid var(--blue-border);border-radius:8px;padding:2px 7px;font-weight:600;margin-left:6px;}
+  .person-remove{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:0.85rem;padding:4px;border-radius:4px;transition:all 0.15s;flex-shrink:0;}
+  .person-remove:hover{color:var(--red);background:var(--red-light);}
+  .add-person-row{display:flex;gap:8px;align-items:flex-end;}
+
+  /* REGISTER MODAL */
+  .register-card{text-align:center;padding:8px 0;}
+  .register-icon{font-size:2.5rem;margin-bottom:12px;}
+  .register-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:6px;}
+  .register-sub{font-size:0.82rem;color:var(--muted);line-height:1.6;margin-bottom:20px;}
+
+  /* LOG */
+  .log-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:0.8rem;}
+  .log-item:last-child{border-bottom:none;}
+  .log-date{color:var(--muted);font-size:0.7rem;margin-bottom:3px;font-family:'IBM Plex Mono',monospace;}
+  .log-note{color:var(--text2);line-height:1.5;}
+
+  /* REMINDER MODAL */
+  .reminder-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface2);}
+  .r-tab{padding:12px 22px;font-size:0.8rem;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;color:var(--muted);font-weight:500;}
+  .r-tab:hover{color:var(--text2);}
+  .r-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--surface);font-weight:600;}
+  .reminder-config{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:14px;flex-shrink:0;}
+  .scope-options{display:flex;gap:8px;flex-wrap:wrap;}
+  .scope-btn{border:1px solid var(--border);color:var(--muted);padding:6px 14px;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:500;cursor:pointer;background:var(--surface);transition:all 0.15s;border-radius:6px;}
+  .scope-btn:hover,.scope-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light);font-weight:600;}
+  .auto-to-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .auto-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent-light);border:1px solid var(--blue-border);border-radius:12px;padding:3px 10px;font-size:0.72rem;font-weight:600;color:var(--accent);}
+  .auto-tag-remove{background:none;border:none;cursor:pointer;color:var(--muted2);font-size:0.75rem;padding:0 0 0 2px;line-height:1;}
+  .auto-tag-remove:hover{color:var(--red);}
+  .reminder-output-area{padding:18px 24px;display:flex;flex-direction:column;gap:12px;flex:1;overflow:hidden;min-height:0;}
+  .output-label{font-size:0.7rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);flex-shrink:0;font-weight:600;}
+  .generated-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px;font-size:0.78rem;line-height:1.75;color:var(--text2);white-space:pre-wrap;word-break:break-word;font-family:'IBM Plex Mono',monospace;overflow-y:auto;flex:1;min-height:0;}
+  .action-row{display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+  .btn-action{display:flex;align-items:center;gap:6px;padding:8px 16px;font-family:'Inter',sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;border-radius:6px;transition:all 0.15s;border:none;white-space:nowrap;}
+  .btn-gmail{background:#ea4335;color:#fff;}
+  .btn-gmail:hover{background:#c5221f;box-shadow:0 2px 8px rgba(234,67,53,0.3);}
+  .btn-wa{background:#25d366;color:#fff;}
+  .btn-wa:hover{background:#1da851;}
+  .btn-copy-sm{background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:8px 16px;font-family:'Inter',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.15s;border-radius:6px;}
+  .btn-copy-sm:hover,.btn-copy-sm.copied{border-color:var(--green);color:var(--green);background:var(--green-light);}
+  .copy-hint{font-size:0.7rem;color:var(--muted);}
+
+  /* MEETING MODE */
+  .meeting-pane{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;animation:fadeIn 0.2s ease;}
+  .meeting-pane.hidden{display:none;}
+  .meeting-pane-header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow);flex-shrink:0;}
+  .meeting-pane-title{font-weight:700;font-size:0.95rem;color:var(--text);display:flex;align-items:center;gap:10px;}
+  .meeting-live-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.4s ease infinite;}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
+  .meeting-pane-meta{display:flex;align-items:center;gap:24px;}
+  .meeting-meta-item{display:flex;flex-direction:column;gap:1px;}
+  .meeting-meta-label{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;}
+  .meeting-meta-val{font-size:0.82rem;font-weight:600;color:var(--text2);}
+  .meeting-pane-actions{display:flex;align-items:center;gap:10px;}
+  .btn-end-meeting{background:var(--red-light);color:var(--red);border:1px solid var(--red-border);padding:8px 16px;font-family:'Inter',sans-serif;font-weight:600;font-size:0.8rem;cursor:pointer;border-radius:6px;transition:all 0.15s;}
+  .btn-end-meeting:hover{background:#fecaca;}
+  .meeting-setup{background:var(--surface);border-bottom:2px solid var(--accent);padding:16px 28px;display:flex;gap:14px;align-items:flex-end;flex-shrink:0;flex-wrap:wrap;}
+  .meeting-setup-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--accent);align-self:center;white-space:nowrap;}
+  .meeting-body{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+  .meeting-grid-wrap{flex:1;overflow:auto;}
+  .meeting-grid{width:100%;border-collapse:collapse;min-width:960px;}
+  .meeting-grid thead th{padding:10px 14px;font-size:0.68rem;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);background:var(--surface2);border-bottom:2px solid var(--border);font-weight:600;white-space:nowrap;position:sticky;top:0;z-index:2;}
+  .meeting-grid tbody tr{border-bottom:1px solid var(--border);}
+  .meeting-grid tbody tr:last-child{border-bottom:none;}
+  .meeting-grid tbody tr:hover{background:#fafbfc;}
+  .meeting-grid td{padding:5px 7px;vertical-align:middle;}
+  .mg-num{width:36px;text-align:center;font-size:0.72rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;font-weight:500;user-select:none;}
+  .mg-input{width:100%;background:transparent;border:1px solid transparent;padding:7px 10px;font-family:'Inter',sans-serif;font-size:0.82rem;color:var(--text);outline:none;border-radius:5px;transition:all 0.15s;}
+  .mg-input:focus{background:var(--surface);border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+  .mg-input::placeholder{color:var(--muted2);}
+  .mg-select{width:100%;background:var(--surface2);border:1px solid var(--border);padding:7px 8px;font-family:'Inter',sans-serif;font-size:0.8rem;color:var(--text2);outline:none;border-radius:5px;appearance:none;cursor:pointer;transition:all 0.15s;}
+  .mg-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+  .mg-owner-wrap{position:relative;}
+  .mg-owner-dd{position:absolute;top:calc(100%+2px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:6px;box-shadow:var(--shadow-md);z-index:300;max-height:160px;overflow-y:auto;display:none;}
+  .mg-owner-dd.show{display:block;}
+  .mg-del{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:0.9rem;padding:5px 8px;border-radius:4px;transition:all 0.15s;line-height:1;}
+  .mg-del:hover{color:var(--red);background:var(--red-light);}
+  .meeting-footer{background:var(--surface);border-top:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;gap:12px;flex-shrink:0;}
+  .meeting-row-count{font-size:0.78rem;color:var(--muted);margin-left:auto;}
+  .meeting-row-count b{color:var(--accent);}
+  .btn-add-row{background:var(--surface2);border:1px dashed var(--border2);color:var(--text2);padding:8px 18px;font-family:'Inter',sans-serif;font-weight:500;font-size:0.8rem;cursor:pointer;border-radius:6px;transition:all 0.15s;}
+  .btn-add-row:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+  .saved-banner{background:var(--green-light);border:1px solid var(--green-border);color:var(--green);padding:8px 16px;border-radius:6px;font-size:0.78rem;font-weight:600;display:none;align-items:center;gap:6px;}
+  .saved-banner.show{display:flex;}
+
+  /* TOASTS */
+  .reminders-panel{position:fixed;bottom:24px;right:24px;width:300px;z-index:300;display:flex;flex-direction:column;gap:8px;}
+  .reminder-toast{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent2);padding:14px 16px;border-radius:8px;box-shadow:var(--shadow-md);animation:toastIn 0.3s ease;}
+  @keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+  .reminder-title{font-size:0.78rem;color:var(--accent2);font-weight:700;margin-bottom:3px;}
+  .reminder-text{font-size:0.72rem;color:var(--muted);line-height:1.4;}
+  .reminder-dismiss{float:right;margin-top:-16px;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:0.85rem;}
+
+  ::-webkit-scrollbar{width:5px;height:5px;}
+  ::-webkit-scrollbar-track{background:var(--surface2);}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+  ::-webkit-scrollbar-thumb:hover{background:var(--muted2);}
+
+  .hint-text{font-size:0.72rem;color:var(--muted);line-height:1.5;}
+  .divider{border:none;border-top:1px solid var(--border);margin:4px 0;}
+
+  /* COLUMN FILTERS BAR */
+  .filter-bar{padding:10px 24px;display:flex;gap:10px;align-items:center;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .filter-bar-label{font-size:0.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;}
+  .col-filter-wrap{position:relative;}
+  .col-filter-btn{display:flex;align-items:center;gap:5px;background:var(--surface);border:1px solid var(--border);color:var(--text2);padding:6px 12px;font-family:'Inter',sans-serif;font-size:0.75rem;font-weight:500;cursor:pointer;border-radius:6px;transition:all 0.15s;white-space:nowrap;}
+  .col-filter-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .col-filter-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-light);font-weight:600;}
+  .col-filter-btn .caret{font-size:0.6rem;margin-left:2px;color:var(--muted2);}
+  .col-filter-btn .badge{background:var(--accent);color:#fff;border-radius:8px;padding:1px 6px;font-size:0.65rem;font-weight:700;margin-left:2px;}
+  .col-dropdown{position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-md);z-index:150;min-width:180px;max-height:240px;overflow-y:auto;display:none;padding:6px 0;}
+  .col-dropdown.show{display:block;}
+  .col-dropdown-item{padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--text2);transition:background 0.1s;white-space:nowrap;}
+  .col-dropdown-item:hover{background:var(--accent-light);}
+  .col-dropdown-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;cursor:pointer;flex-shrink:0;}
+  .col-dropdown-item.selected{color:var(--accent);font-weight:500;}
+  .clear-col-filter{padding:7px 14px;font-size:0.72rem;color:var(--muted);cursor:pointer;border-top:1px solid var(--border);margin-top:4px;display:block;text-align:center;transition:color 0.1s;}
+  .clear-col-filter:hover{color:var(--red);}
+  .filter-clear-all{font-size:0.72rem;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:6px;border:1px solid transparent;transition:all 0.15s;white-space:nowrap;}
+  .filter-clear-all:hover{color:var(--red);border-color:var(--red-border);background:var(--red-light);}
+</style>
+</head>
+<body>
+
+<!-- REGISTER MODAL (shown on first visit) -->
+<div class="modal-overlay" id="registerModal">
+  <div class="modal narrow">
+    <div class="modal-body">
+      <div class="register-card">
+        <div class="register-icon">👋</div>
+        <div class="register-title">Action Items Tracker — Rebel Foods</div>
+        <div class="register-sub">Enter your name and Gmail address to get started.</div>
+        <div style="display:flex;flex-direction:column;gap:12px;text-align:left;">
+          <div class="form-group">
+            <label class="form-label">Your Name</label>
+            <input class="form-input" id="reg-name" type="text" placeholder="e.g. Priya Sharma" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Your Gmail Address</label>
+            <input class="form-input" id="reg-email" type="email" placeholder="yourname@gmail.com" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn-ghost" onclick="skipRegister()">Skip for now</button>
+      <button class="btn-primary" onclick="registerUser()">Register & Enter</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">Action Items Tracker — <span>Rebel Foods</span></div>
+  <div class="header-right">
+    <div class="header-meta"><div>Manvi · Rebel Foods</div><strong id="todayDate"></strong></div>
+    <div class="user-chip" onclick="openPeopleModal()" id="userChip" style="display:none">
+      <div class="user-avatar" id="userAvatarHdr">?</div>
+      <span class="user-chip-name" id="userNameHdr">You</span>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stat open" onclick="filterByStatus('Open')"><div class="stat-num" id="count-open">0</div><div class="stat-label">Open</div></div>
+  <div class="stat progress" onclick="filterByStatus('In Progress')"><div class="stat-num" id="count-progress">0</div><div class="stat-label">In Progress</div></div>
+  <div class="stat overdue" onclick="filterByStatus('overdue')"><div class="stat-num" id="count-overdue">0</div><div class="stat-label">Overdue</div></div>
+  <div class="stat done" onclick="filterByStatus('Done')"><div class="stat-num" id="count-done">0</div><div class="stat-label">Done</div></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn-primary" onclick="openAddModal()">+ Add Action Item</button>
+  <button class="btn-primary" style="background:#7c3aed;gap:6px;display:flex;align-items:center;" onclick="openMeetingMode()">⚡ Meeting Mode</button>
+  <button class="btn-reminder" onclick="openReminderModal()">📨 Send Reminders</button>
+  <button class="btn-people" onclick="openPeopleModal()">👥 People</button>
+  <button class="filter-btn active" id="filter-all" onclick="setFilter('all')">All</button>
+  <button class="filter-btn" id="filter-open" onclick="setFilter('Open')">Open</button>
+  <button class="filter-btn" id="filter-progress" onclick="setFilter('In Progress')">In Progress</button>
+  <button class="filter-btn" id="filter-done" onclick="setFilter('Done')">Done</button>
+  <div class="search-wrap">
+    <input class="search-input" type="text" placeholder="Search actions, owners, meetings…" oninput="handleSearch(this.value)" />
+  </div>
+</div>
+
+<div class="filter-bar" id="filterBar">
+  <span class="filter-bar-label">Filter:</span>
+
+  <div class="col-filter-wrap">
+    <button class="col-filter-btn" id="fb-meeting" onclick="toggleColDropdown('meeting')">
+      Meeting / Source <span class="caret">▼</span>
+    </button>
+    <div class="col-dropdown" id="dd-meeting"></div>
+  </div>
+
+  <div class="col-filter-wrap">
+    <button class="col-filter-btn" id="fb-owner" onclick="toggleColDropdown('owner')">
+      Owner <span class="caret">▼</span>
+    </button>
+    <div class="col-dropdown" id="dd-owner"></div>
+  </div>
+
+  <div class="col-filter-wrap">
+    <button class="col-filter-btn" id="fb-due" onclick="toggleColDropdown('due')">
+      Due Date <span class="caret">▼</span>
+    </button>
+    <div class="col-dropdown" id="dd-due"></div>
+  </div>
+
+  <div class="col-filter-wrap">
+    <button class="col-filter-btn" id="fb-priority" onclick="toggleColDropdown('priority')">
+      Priority <span class="caret">▼</span>
+    </button>
+    <div class="col-dropdown" id="dd-priority"></div>
+  </div>
+
+  <div class="col-filter-wrap">
+    <button class="col-filter-btn" id="fb-status" onclick="toggleColDropdown('status')">
+      Status <span class="caret">▼</span>
+    </button>
+    <div class="col-dropdown" id="dd-status"></div>
+  </div>
+
+  <span class="filter-clear-all" id="clearAllFilters" onclick="clearAllColFilters()" style="display:none">✕ Clear filters</span>
+</div>
+
+<div class="table-wrapper">
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="sortBy('action')">Action Item</th>
+          <th onclick="sortBy('meeting')">Meeting / Source</th>
+          <th onclick="sortBy('meetingDate')">Meeting Date</th>
+          <th onclick="sortBy('owner')">Owner</th>
+          <th onclick="sortBy('due')">Due Date</th>
+          <th onclick="sortBy('priority')">Priority</th>
+          <th onclick="sortBy('status')">Status</th>
+          <th>Comments <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.65rem;color:var(--muted2)">(click to edit)</span></th>
+          <th>Updates</th>
+          <th style="width:70px"></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty-state hidden" id="emptyState">
+      <div class="big">📋</div>
+      <div style="font-weight:500;color:var(--text2)">No action items yet</div>
+      <div style="margin-top:6px;color:var(--muted)">Hit "+ Add Action Item" to get started</div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay hidden" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">New Action Item</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Action Item *</label>
+        <input class="form-input" id="f-action" type="text" placeholder="What needs to be done?" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Meeting / Source *</label>
+          <input class="form-input" id="f-meeting" type="text" placeholder="e.g. CEO Weekly Sync" />
+        </div>
+        <div class="form-group owner-select-wrap">
+          <label class="form-label">Owner *</label>
+          <input class="form-input" id="f-owner-input" type="text" placeholder="Type name or email…" autocomplete="off"
+            oninput="filterOwnerDropdown(this.value)" onfocus="showOwnerDropdown()" />
+          <input type="hidden" id="f-owner-email" />
+          <div class="owner-dropdown" id="ownerDropdown"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" id="f-due" type="date" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-select" id="f-priority">
+            <option value="High">🔴 High</option>
+            <option value="Medium" selected>🟡 Medium</option>
+            <option value="Low">⚪ Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="f-status">
+            <option value="Open">Open</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Meeting Date</label>
+          <input class="form-input" id="f-meetingdate" type="date" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Comments / Remarks</label>
+        <textarea class="form-textarea" id="f-comments" placeholder="What step is ongoing? Any blocker or latest remark?"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Internal Notes</label>
+        <textarea class="form-textarea" id="f-notes" placeholder="Background context, documents, etc."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG MODAL -->
+<div class="modal-overlay hidden" id="logModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Update Log</div>
+      <button class="modal-close" onclick="closeLogModal()">✕</button>
+    </div>
+    <div class="modal-body" id="logModalBody" style="max-height:240px;"></div>
+    <div class="modal-body" style="padding-top:0;gap:10px;padding-bottom:0;">
+      <div class="form-group">
+        <label class="form-label">Add Update</label>
+        <textarea class="form-textarea" id="newLogEntry" placeholder="What's the latest on this?"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeLogModal()">Close</button>
+      <button class="btn-primary" onclick="addLogEntry()">Log Update</button>
+    </div>
+  </div>
+</div>
+
+<!-- PEOPLE MODAL -->
+<div class="modal-overlay hidden" id="peopleModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👥 People Directory</div>
+      <button class="modal-close" onclick="closePeopleModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="hint-text">Everyone who opens this tracker registers here. Their email IDs are used to auto-tag owners and auto-fill reminder recipients.</p>
+      <hr class="divider"/>
+      <div class="people-list" id="peopleList"></div>
+      <hr class="divider"/>
+      <div class="form-group">
+        <label class="form-label">Add Person Manually</label>
+        <div class="add-person-row">
+          <input class="form-input" id="add-person-name" type="text" placeholder="Name" style="flex:1" />
+          <input class="form-input" id="add-person-email" type="email" placeholder="Gmail address" style="flex:1.5" />
+          <button class="btn-primary" style="flex-shrink:0" onclick="addPersonManually()">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="closePeopleModal()">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMINDER MODAL -->
+<div class="modal-overlay hidden" id="reminderModal">
+  <div class="modal wide" style="max-height:92vh;">
+    <div class="modal-header">
+      <div class="modal-title">📨 Reminder Generator</div>
+      <button class="modal-close" onclick="closeReminderModal()">✕</button>
+    </div>
+    <div class="reminder-tabs">
+      <div class="r-tab active" onclick="switchReminderTab('email')">✉ Email</div>
+      <div class="r-tab" onclick="switchReminderTab('whatsapp')">💬 WhatsApp</div>
+    </div>
+    <div class="reminder-config">
+      <div class="form-group">
+        <label class="form-label">Scope</label>
+        <div class="scope-options">
+          <button class="scope-btn active" onclick="setScope('all-open',this)">All Open / In Progress</button>
+          <button class="scope-btn" onclick="setScope('overdue',this)">Overdue Only</button>
+          <button class="scope-btn" onclick="setScope('due-soon',this)">Due in 3 Days</button>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tone</label>
+          <select class="form-select" id="r-tone" onchange="generateReminder()">
+            <option value="professional">Professional</option>
+            <option value="friendly">Friendly & Warm</option>
+            <option value="urgent">Urgent</option>
+            <option value="brief">Super Brief</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" id="r-to-label">To — auto-filled from owners</label>
+          <div class="auto-to-row" id="autoToRow"></div>
+        </div>
+      </div>
+    </div>
+    <div class="reminder-output-area">
+      <div class="output-label" id="outputLabel">Email Preview</div>
+      <div class="generated-box" id="generatedText"></div>
+      <div class="action-row">
+        <button class="btn-action btn-gmail" id="sendBtn" onclick="sendReminder()">↗ Open in Gmail</button>
+        <button class="btn-copy-sm" id="copyBtn" onclick="copyReminder()">Copy Text</button>
+        <span class="copy-hint" id="actionHint">Opens Gmail with To, Subject & Body pre-filled</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MEETING MODE PANE -->
+<div class="meeting-pane hidden" id="meetingPane">
+
+  <!-- Header -->
+  <div class="meeting-pane-header">
+    <div class="meeting-pane-title">
+      <div class="meeting-live-dot"></div>
+      Meeting Mode
+    </div>
+    <div class="meeting-pane-meta">
+      <div class="meeting-meta-item">
+        <span class="meeting-meta-label">Meeting</span>
+        <span class="meeting-meta-val" id="mp-meeting-display">—</span>
+      </div>
+      <div class="meeting-meta-item">
+        <span class="meeting-meta-label">Date</span>
+        <span class="meeting-meta-val" id="mp-date-display">—</span>
+      </div>
+      <div class="meeting-meta-item">
+        <span class="meeting-meta-label">Items captured</span>
+        <span class="meeting-meta-val" id="mp-count">0</span>
+      </div>
+    </div>
+    <div class="meeting-pane-actions">
+      <div class="saved-banner" id="savedBanner">✓ Saved to tracker</div>
+      <button class="btn-ghost" onclick="saveMeetingItems(false)">💾 Save All</button>
+      <button class="btn-end-meeting" onclick="endMeeting()">End Meeting & Close</button>
+    </div>
+  </div>
+
+  <!-- Meeting Setup Strip -->
+  <div class="meeting-setup">
+    <span class="meeting-setup-label">Meeting Details:</span>
+    <div class="form-group" style="min-width:220px;">
+      <label class="form-label">Meeting / Source *</label>
+      <input class="form-input" id="mp-meeting" type="text" placeholder="e.g. CEO Weekly Sync" oninput="updateMeetingHeader()" />
+    </div>
+    <div class="form-group" style="min-width:160px;">
+      <label class="form-label">Meeting Date *</label>
+      <input class="form-input" id="mp-date" type="date" oninput="updateMeetingHeader()" />
+    </div>
+    <div class="form-group" style="min-width:140px;">
+      <label class="form-label">Default Status</label>
+      <select class="form-select" id="mp-default-status">
+        <option value="Open" selected>Open</option>
+        <option value="In Progress">In Progress</option>
+      </select>
+    </div>
+    <div class="form-group" style="min-width:140px;">
+      <label class="form-label">Default Priority</label>
+      <select class="form-select" id="mp-default-priority">
+        <option value="Medium" selected>Medium</option>
+        <option value="High">High</option>
+        <option value="Low">Low</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Grid -->
+  <div class="meeting-body">
+    <div class="meeting-grid-wrap">
+      <table class="meeting-grid">
+        <thead>
+          <tr>
+            <th style="width:36px;">#</th>
+            <th style="min-width:300px;">Action Item *</th>
+            <th style="min-width:170px;">Owner</th>
+            <th style="min-width:130px;">Due Date</th>
+            <th style="min-width:100px;">Priority</th>
+            <th style="min-width:120px;">Status</th>
+            <th style="min-width:200px;">Comments / Remarks</th>
+            <th style="width:40px;"></th>
+          </tr>
+        </thead>
+        <tbody id="meetingGridBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="meeting-footer">
+    <button class="btn-add-row" onclick="addMeetingRow()">+ Add Row <span style="font-size:0.7rem;color:var(--muted);margin-left:4px;">Tab to next row</span></button>
+    <span class="meeting-row-count">Rows: <b id="mp-row-count">0</b></span>
+  </div>
+</div>
+
+<div class="reminders-panel" id="remindersPanel"></div>
+
+<script>
+  // ── SUPABASE CONFIG ──
+  const SUPA_URL = 'https://scszsbpklxfzjysqbiwd.supabase.co';
+  const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc3pzYnBrbHhmemp5c3FiaXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzODAyMDUsImV4cCI6MjA4Nzk1NjIwNX0.dQDzyiwuN5AvFSo8TTj5wp-XltnZdQfk_dJ3LtXtIgk';
+
+  const SUPA_HEADERS = {
+    'Content-Type': 'application/json',
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Prefer': 'return=representation'
+  };
+
+  async function dbSelect(table, params=''){
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?${params}&order=created_at.asc`, {headers: SUPA_HEADERS});
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+  async function dbInsert(table, row){
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}`, {method:'POST', headers: SUPA_HEADERS, body: JSON.stringify(row)});
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+  async function dbUpdate(table, id, patch){
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {method:'PATCH', headers: SUPA_HEADERS, body: JSON.stringify(patch)});
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+  async function dbDelete(table, id){
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?id=eq.${id}`, {method:'DELETE', headers: {...SUPA_HEADERS, 'Prefer':''}});
+    if (!r.ok) throw new Error(await r.text());
+  }
+  async function dbUpsert(table, row){
+    const r = await fetch(`${SUPA_URL}/rest/v1/${table}?on_conflict=id`, {method:'POST', headers:{...SUPA_HEADERS,'Prefer':'resolution=merge-duplicates,return=representation'}, body: JSON.stringify(row)});
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  // ── LOCAL STATE (synced from Supabase) ──
+  const ME_KEY = 'cos-me-v3';
+  let items = [];
+  let people = [];
+  let me = JSON.parse(localStorage.getItem(ME_KEY) || 'null');
+
+  let editingId=null, currentFilter='all', searchQuery='', currentLogId=null;
+  let sortKey='due', sortDir=1, reminderTab='email', reminderScope='all-open';
+  let editingCommentId=null;
+  let reminderTo = [];
+
+  function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+  function saveMe(){localStorage.setItem(ME_KEY,JSON.stringify(me));}
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function initials(name){return name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase()||'?';}
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  function parseDate(s){if(!s)return null;const d=new Date(s);d.setHours(0,0,0,0);return d;}
+  function fmtDate(s){const d=parseDate(s);if(!d)return '—';return d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});}
+  function dueCls(s,status){
+    if(status==='Done')return 'ok';
+    const d=parseDate(s);if(!d)return 'ok';
+    const diff=(d-today)/86400000;
+    return diff<0?'overdue':diff<=2?'due-soon':'ok';
+  }
+
+  // ── LOADING STATE ──
+  function setLoading(on){
+    let el = document.getElementById('loadingBar');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'loadingBar';
+      el.style.cssText = 'position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:9999;transition:opacity 0.3s;';
+      document.body.prepend(el);
+    }
+    el.style.opacity = on ? '1' : '0';
+  }
+
+  // ── LOAD ALL DATA ──
+  async function loadAll(){
+    setLoading(true);
+    try {
+      const [fetchedItems, fetchedPeople] = await Promise.all([
+        dbSelect('action_items', 'select=*'),
+        dbSelect('people', 'select=*')
+      ]);
+      // sort items newest first
+      items = fetchedItems.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+      people = fetchedPeople;
+    } catch(e){
+      console.error('Load error:', e);
+      showDBError('Could not connect to database. Check your connection.');
+    }
+    setLoading(false);
+    render();
+    setTimeout(checkReminders, 800);
+  }
+
+  function showDBError(msg){
+    let el = document.getElementById('dbError');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'dbError';
+      el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 20px;border-radius:8px;font-size:0.8rem;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.1);';
+      document.body.appendChild(el);
+    }
+    el.textContent = '⚠ ' + msg;
+    el.style.display = 'block';
+    setTimeout(()=>{ if(el) el.style.display='none'; }, 5000);
+  }
+
+  // ── REGISTER ──
+  function checkRegister(){
+    if (me) {
+      document.getElementById('registerModal').classList.add('hidden');
+      updateUserChip();
+    }
+  }
+
+  async function registerUser(){
+    const name=document.getElementById('reg-name').value.trim();
+    const email=document.getElementById('reg-email').value.trim().toLowerCase();
+    if (!name){alert('Please enter your name.');return;}
+    if (!email||!email.includes('@')){alert('Please enter a valid email.');return;}
+    me={id:uid(),name,email};
+    saveMe();
+    // Upsert into Supabase people table
+    try {
+      await dbUpsert('people', {id:me.id, name, email});
+      if (!people.find(p=>p.email===email)) people.push({id:me.id,name,email});
+    } catch(e){ console.error('Register error:', e); }
+    document.getElementById('registerModal').classList.add('hidden');
+    updateUserChip();
+    render();
+  }
+
+  function skipRegister(){
+    document.getElementById('registerModal').classList.add('hidden');
+  }
+
+  function updateUserChip(){
+    const chip=document.getElementById('userChip');
+    if (me){
+      chip.style.display='flex';
+      document.getElementById('userAvatarHdr').textContent=initials(me.name);
+      document.getElementById('userNameHdr').textContent=me.name.split(' ')[0];
+    } else {
+      chip.style.display='none';
+    }
+  }
+
+  // ── PEOPLE MODAL ──
+  function openPeopleModal(){
+    renderPeopleList();
+    document.getElementById('peopleModal').classList.remove('hidden');
+  }
+  function closePeopleModal(){
+    document.getElementById('peopleModal').classList.add('hidden');
+    render();
+  }
+  function renderPeopleList(){
+    const list=document.getElementById('peopleList');
+    if (people.length===0){list.innerHTML='<div style="color:var(--muted2);font-size:0.8rem;text-align:center;padding:12px 0;">No people registered yet. Share this tracker link with your team!</div>';return;}
+    list.innerHTML=people.map(p=>`
+      <div class="person-row">
+        <div class="person-avatar-lg">${initials(p.name)}</div>
+        <div class="person-info">
+          <div class="person-name">${esc(p.name)} ${me&&me.email===p.email?'<span class="person-you">You</span>':''}</div>
+          <div class="person-email">${esc(p.email)}</div>
+        </div>
+        <button class="person-remove" onclick="removePerson('${p.id}')" title="Remove">✕</button>
+      </div>`).join('');
+  }
+  async function addPersonManually(){
+    const name=document.getElementById('add-person-name').value.trim();
+    const email=document.getElementById('add-person-email').value.trim().toLowerCase();
+    if (!name||!email||!email.includes('@')){alert('Please enter a valid name and email.');return;}
+    if (people.find(p=>p.email===email)){alert('This email is already in the directory.');return;}
+    const person = {id:uid(),name,email};
+    try {
+      await dbInsert('people', person);
+      people.push(person);
+      document.getElementById('add-person-name').value='';
+      document.getElementById('add-person-email').value='';
+      renderPeopleList();
+    } catch(e){ showDBError('Could not add person.'); }
+  }
+  async function removePerson(id){
+    if (!confirm('Remove this person from the directory?'))return;
+    try {
+      await dbDelete('people', id);
+      people=people.filter(p=>p.id!==id);
+      renderPeopleList();
+    } catch(e){ showDBError('Could not remove person.'); }
+  }
+
+  // ── OWNER DROPDOWN ──
+  let ownerDropdownActive=false;
+  function showOwnerDropdown(){
+    filterOwnerDropdown(document.getElementById('f-owner-input').value);
+    document.getElementById('ownerDropdown').classList.add('show');
+    ownerDropdownActive=true;
+  }
+  function filterOwnerDropdown(q){
+    const dd=document.getElementById('ownerDropdown');
+    const lq=q.toLowerCase();
+    const matches=people.filter(p=>p.name.toLowerCase().includes(lq)||p.email.toLowerCase().includes(lq));
+    let html=matches.map(p=>`
+      <div class="owner-option" onmousedown="selectOwner('${esc(p.name)}','${esc(p.email)}')">
+        <div class="owner-option-avatar">${initials(p.name)}</div>
+        <div class="owner-option-info">
+          <span class="owner-option-name">${esc(p.name)}</span>
+          <span class="owner-option-email">${esc(p.email)}</span>
+        </div>
+      </div>`).join('');
+    if (q && !people.find(p=>p.name.toLowerCase()===lq)){
+      html+=`<div class="owner-option" onmousedown="selectOwnerFreeText('${esc(q)}')">
+        <div class="owner-option-avatar" style="background:var(--muted2)">+</div>
+        <div class="owner-option-info"><span class="owner-option-add">Use "${esc(q)}" (not registered)</span></div>
+      </div>`;
+    }
+    dd.innerHTML=html||'<div style="padding:10px 12px;font-size:0.78rem;color:var(--muted2)">No people found. Add via 👥 People.</div>';
+    dd.classList.add('show');
+  }
+  function selectOwner(name,email){
+    document.getElementById('f-owner-input').value=name;
+    document.getElementById('f-owner-email').value=email;
+    document.getElementById('ownerDropdown').classList.remove('show');
+  }
+  function selectOwnerFreeText(name){
+    document.getElementById('f-owner-input').value=name;
+    document.getElementById('f-owner-email').value='';
+    document.getElementById('ownerDropdown').classList.remove('show');
+  }
+  document.addEventListener('click',e=>{
+    if (!e.target.closest('.owner-select-wrap')){
+      document.getElementById('ownerDropdown')?.classList.remove('show');
+    }
+  });
+
+  // ── RENDER ──
+  function norm(it){
+    // Normalise Supabase snake_case → camelCase for rendering
+    return {
+      ...it,
+      ownerEmail: it.ownerEmail || it.owner_email || '',
+      meetingDate: it.meetingDate || it.meeting_date || '',
+      logs: Array.isArray(it.logs) ? it.logs : (typeof it.logs==='string' ? JSON.parse(it.logs||'[]') : [])
+    };
+  }
+  function render(){
+    const body=document.getElementById('tableBody');
+    let filtered=items.filter(it=>{
+      if(currentFilter==='all')return true;
+      if(currentFilter==='overdue'){const d=parseDate(it.due);return d&&d<today&&it.status!=='Done';}
+      return it.status===currentFilter;
+    }).filter(it=>{
+      if(!searchQuery)return true;
+      const q=searchQuery.toLowerCase();
+      return [it.action,it.owner,it.meeting,it.comments||''].some(v=>v.toLowerCase().includes(q));
+    });
+    filtered = applyColFilters(filtered);
+    filtered.sort((a,b)=>{
+      let va=a[sortKey]||'',vb=b[sortKey]||'';
+      if(sortKey==='priority'){const o={High:0,Medium:1,Low:2};va=o[va]??1;vb=o[vb]??1;}
+      return va<vb?-sortDir:va>vb?sortDir:0;
+    });
+    const PM={High:'p-high',Medium:'p-med',Low:'p-low'};
+    const PL={High:'High',Medium:'Med',Low:'Low'};
+    const SM={Open:'s-open','In Progress':'s-progress',Done:'s-done'};
+
+    body.innerHTML=filtered.map(raw=>{
+      const it=norm(raw);
+      const dc=dueCls(it.due,it.status),isDone=it.status==='Done',comment=it.comments||'';
+      const overdueFlag=dc==='overdue'?' <span style="color:var(--red);font-size:0.65rem;font-weight:600;margin-left:4px;">OVERDUE</span>':'';
+      // Owner chip
+      const person=people.find(p=>p.email&&(p.email===it.ownerEmail||p.email===(it.owner_email||'')));
+      const ownerHtml=person
+        ?`<div class="owner-chip" title="${esc(person.email)}"><div class="owner-avatar">${initials(person.name)}</div><span class="owner-name">${esc(person.name)}</span></div>`
+        :`<span class="owner-plain">${esc(it.owner)}</span>`;
+      return `<tr>
+        <td><div class="action-text ${isDone?'done-text':''}">${esc(it.action)}</div></td>
+        <td><span class="meeting-tag">${esc(it.meeting)}</span></td>
+        <td><span class="due-date ok" style="font-size:0.75rem;">${fmtDate(it.meetingDate)}</span></td>
+        <td>${ownerHtml}</td>
+        <td><span class="due-date ${dc}">${fmtDate(it.due)}${dc==='overdue'?' ⚠':dc==='due-soon'?' ●':''}</span>${overdueFlag}</td>
+        <td><span class="priority-badge ${PM[it.priority]}">${PL[it.priority]}</span></td>
+        <td><span class="status-badge ${SM[it.status]}" onclick="cycleStatus('${it.id}')">${it.status}</span></td>
+        <td class="comment-cell"><div class="comment-display ${comment?'':'empty'}" onclick="startEditComment('${it.id}')">${comment?esc(comment):'Add remark…'}</div></td>
+        <td><button class="icon-btn" onclick="openLog('${it.id}')">${it.logs.length>0?'💬 '+it.logs.length:'＋'}</button></td>
+        <td><div class="row-actions">
+          <button class="icon-btn" onclick="editItem('${it.id}')" title="Edit">✎</button>
+          ${isManvi()?`<button class="icon-btn delete" onclick="deleteItem('${it.id}')" title="Delete">✕</button>`:''}
+        </div></td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('emptyState').classList.toggle('hidden',filtered.length>0);
+    document.getElementById('count-open').textContent=items.filter(i=>i.status==='Open').length;
+    document.getElementById('count-progress').textContent=items.filter(i=>i.status==='In Progress').length;
+    document.getElementById('count-done').textContent=items.filter(i=>i.status==='Done').length;
+    document.getElementById('count-overdue').textContent=items.filter(i=>{const d=parseDate(i.due);return d&&d<today&&i.status!=='Done';}).length;
+    document.getElementById('todayDate').textContent=today.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  }
+
+  // ── INLINE COMMENT ──
+  function startEditComment(id){
+    if(editingCommentId&&editingCommentId!==id)commitComment(editingCommentId);
+    editingCommentId=id;
+    const it=items.find(i=>i.id===id);if(!it)return;
+    const display=document.querySelector(`.comment-display[onclick="startEditComment('${id}')"]`);if(!display)return;
+    display.parentElement.innerHTML=`<textarea class="comment-input-inline" id="ci-${id}"></textarea>`;
+    const ta=document.getElementById('ci-'+id);
+    ta.value=it.comments||'';
+    ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);
+    ta.addEventListener('blur',()=>commitComment(id));
+    ta.addEventListener('keydown',e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();commitComment(id);}
+      if(e.key==='Escape'){editingCommentId=null;render();}
+    });
+  }
+  async function commitComment(id){
+    if(editingCommentId!==id)return;
+    editingCommentId=null;
+    const ta=document.getElementById('ci-'+id);if(!ta)return;
+    const it=items.find(i=>i.id===id);if(!it)return;
+    const val=ta.value.trim();
+    it.comments=val;
+    render();
+    try { await dbUpdate('action_items',id,{comments:val}); }
+    catch(e){ showDBError('Could not save comment.'); }
+  }
+
+  // ── MANVI CHECK ──
+  const MANVI_EMAIL = 'manvi'; // matches any registered email containing 'manvi'
+  function isManvi(){
+    if (!me) return false;
+    return me.email.toLowerCase().includes('manvi') || me.name.toLowerCase().includes('manvi');
+  }
+
+  // ── COLUMN FILTERS ──
+  // colFilters: { meeting: Set, owner: Set, due: Set, priority: Set, status: Set }
+  let colFilters = { meeting: new Set(), owner: new Set(), due: new Set(), priority: new Set(), status: new Set() };
+
+  const DUE_BUCKETS = [
+    {label:'Overdue', fn: it => { const d=parseDate(it.due); return d&&d<today&&it.status!=='Done'; }},
+    {label:'Due Today', fn: it => { const d=parseDate(it.due); return d&&d.getTime()===today.getTime(); }},
+    {label:'Due This Week', fn: it => { const d=parseDate(it.due); if(!d)return false; const diff=(d-today)/86400000; return diff>0&&diff<=7; }},
+    {label:'Due Next Week', fn: it => { const d=parseDate(it.due); if(!d)return false; const diff=(d-today)/86400000; return diff>7&&diff<=14; }},
+    {label:'No Due Date', fn: it => !it.due },
+  ];
+
+  function getColOptions(col){
+    if (col==='due') return DUE_BUCKETS.map(b=>b.label);
+    const vals = [...new Set(items.map(it=>it[col]||'—').filter(Boolean))];
+    if (col==='priority') return ['High','Medium','Low'].filter(v=>vals.includes(v));
+    if (col==='status') return ['Open','In Progress','Done'].filter(v=>vals.includes(v));
+    return vals.sort();
+  }
+
+  function toggleColDropdown(col){
+    const dd = document.getElementById('dd-'+col);
+    const isOpen = dd.classList.contains('show');
+    // close all
+    document.querySelectorAll('.col-dropdown').forEach(d=>d.classList.remove('show'));
+    if (isOpen) return;
+    // build options
+    const opts = getColOptions(col);
+    const selected = colFilters[col];
+    dd.innerHTML = opts.map(opt=>`
+      <label class="col-dropdown-item ${selected.has(opt)?'selected':''}">
+        <input type="checkbox" ${selected.has(opt)?'checked':''} onchange="toggleColFilter('${col}','${opt.replace(/'/g,"\\'")}',this.checked)" />
+        ${esc(opt)}
+      </label>`).join('') +
+      `<span class="clear-col-filter" onclick="clearColFilter('${col}')">Clear</span>`;
+    dd.classList.add('show');
+  }
+
+  function toggleColFilter(col, val, checked){
+    if (checked) colFilters[col].add(val);
+    else colFilters[col].delete(val);
+    updateColFilterButtons();
+    render();
+  }
+
+  function clearColFilter(col){
+    colFilters[col].clear();
+    document.getElementById('dd-'+col).classList.remove('show');
+    updateColFilterButtons();
+    render();
+  }
+
+  function clearAllColFilters(){
+    Object.keys(colFilters).forEach(k=>colFilters[k].clear());
+    updateColFilterButtons();
+    render();
+  }
+
+  function updateColFilterButtons(){
+    let anyActive = false;
+    Object.keys(colFilters).forEach(col=>{
+      const btn = document.getElementById('fb-'+col);
+      const count = colFilters[col].size;
+      const active = count > 0;
+      if (active) anyActive = true;
+      btn.classList.toggle('active', active);
+      // update badge
+      const existing = btn.querySelector('.badge');
+      if (existing) existing.remove();
+      if (active){
+        const badge = document.createElement('span');
+        badge.className='badge'; badge.textContent=count;
+        btn.appendChild(badge);
+      }
+    });
+    document.getElementById('clearAllFilters').style.display = anyActive ? 'inline-block' : 'none';
+  }
+
+  function applyColFilters(list){
+    return list.filter(it=>{
+      // meeting
+      if (colFilters.meeting.size>0 && !colFilters.meeting.has(it.meeting||'—')) return false;
+      // owner
+      if (colFilters.owner.size>0 && !colFilters.owner.has(it.owner||'—')) return false;
+      // priority
+      if (colFilters.priority.size>0 && !colFilters.priority.has(it.priority)) return false;
+      // status
+      if (colFilters.status.size>0 && !colFilters.status.has(it.status)) return false;
+      // due buckets
+      if (colFilters.due.size>0){
+        const matchesDue = [...colFilters.due].some(label=>{
+          const bucket = DUE_BUCKETS.find(b=>b.label===label);
+          return bucket && bucket.fn(it);
+        });
+        if (!matchesDue) return false;
+      }
+      return true;
+    });
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', e=>{
+    if (!e.target.closest('.col-filter-wrap')) {
+      document.querySelectorAll('.col-dropdown').forEach(d=>d.classList.remove('show'));
+    }
+  });
+
+  // ── FILTERS ──
+  function setFilter(f){
+    currentFilter=f;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    const map={all:'filter-all',Open:'filter-open','In Progress':'filter-progress',Done:'filter-done'};
+    document.getElementById(map[f])?.classList.add('active');
+    render();
+  }
+  function filterByStatus(s){setFilter(s);}
+  function handleSearch(v){searchQuery=v;render();}
+  function sortBy(k){if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=1;}render();}
+
+  // ── ADD/EDIT ──
+  function openAddModal(){
+    editingId=null;
+    document.getElementById('modalTitle').textContent='New Action Item';
+    ['f-action','f-meeting','f-due','f-meetingdate','f-notes','f-comments'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-owner-input').value='';
+    document.getElementById('f-owner-email').value='';
+    document.getElementById('f-priority').value='Medium';
+    document.getElementById('f-status').value='Open';
+    document.getElementById('modal').classList.remove('hidden');
+  }
+  function editItem(id){
+    const raw=items.find(i=>i.id===id);if(!raw)return;
+    const it=norm(raw);
+    editingId=id;
+    document.getElementById('modalTitle').textContent='Edit Action Item';
+    document.getElementById('f-action').value=it.action;
+    document.getElementById('f-meeting').value=it.meeting;
+    document.getElementById('f-owner-input').value=it.owner;
+    document.getElementById('f-owner-email').value=it.ownerEmail||'';
+    document.getElementById('f-due').value=it.due||'';
+    document.getElementById('f-priority').value=it.priority;
+    document.getElementById('f-status').value=it.status;
+    document.getElementById('f-meetingdate').value=it.meetingDate||'';
+    document.getElementById('f-notes').value=it.notes||'';
+    document.getElementById('f-comments').value=it.comments||'';
+    document.getElementById('modal').classList.remove('hidden');
+  }
+  function closeModal(){document.getElementById('modal').classList.add('hidden');}
+  async function saveItem(){
+    const action=document.getElementById('f-action').value.trim();
+    const meeting=document.getElementById('f-meeting').value.trim();
+    const owner=document.getElementById('f-owner-input').value.trim();
+    if(!action||!meeting||!owner){alert('Please fill Action, Meeting, and Owner.');return;}
+    const ownerEmail=document.getElementById('f-owner-email').value.trim().toLowerCase();
+    const due=document.getElementById('f-due').value||null;
+    const meetingDate=document.getElementById('f-meetingdate').value||null;
+    const dbRow={action,meeting,owner,owner_email:ownerEmail,due,priority:document.getElementById('f-priority').value,status:document.getElementById('f-status').value,meeting_date:meetingDate,notes:document.getElementById('f-notes').value.trim(),comments:document.getElementById('f-comments').value.trim()};
+    setLoading(true);
+    try {
+      if(editingId){
+        await dbUpdate('action_items',editingId,dbRow);
+        const idx=items.findIndex(i=>i.id===editingId);
+        if(idx>=0) items[idx]={...items[idx],...dbRow,ownerEmail,meetingDate};
+      } else {
+        const id=uid();
+        const newItem={...dbRow,id,ownerEmail,meetingDate,logs:[]};
+        await dbInsert('action_items',{...dbRow,id,logs:'[]'});
+        items.unshift(newItem);
+      }
+    } catch(e){ showDBError('Could not save item. Please try again.'); console.error(e); }
+    setLoading(false); closeModal(); render();
+  }
+  async function deleteItem(id){
+    if(!isManvi()){alert('Only Manvi can delete action items.');return;}
+    if(!confirm('Delete this action item?'))return;
+    setLoading(true);
+    try { await dbDelete('action_items',id); items=items.filter(i=>i.id!==id); }
+    catch(e){ showDBError('Could not delete item.'); }
+    setLoading(false); render();
+  }
+  async function cycleStatus(id){
+    const order=['Open','In Progress','Done'];
+    const it=items.find(i=>i.id===id);if(!it)return;
+    const next=order[(order.indexOf(it.status)+1)%order.length];
+    it.status=next; render(); // optimistic UI
+    try { await dbUpdate('action_items',id,{status:next}); }
+    catch(e){ showDBError('Could not update status.'); await loadAll(); }
+  }
+
+  // ── LOG ──
+  function openLog(id){
+    currentLogId=id;
+    const raw=items.find(i=>i.id===id);if(!raw)return;
+    const it=norm(raw);
+    document.getElementById('logModalBody').innerHTML=
+      `<div style="font-size:0.75rem;color:var(--muted);margin-bottom:12px;font-weight:500">Updates — <span style="color:var(--text)">${esc(it.action.slice(0,55))}…</span></div>`+
+      (it.logs.length===0?'<div style="color:var(--muted2);font-size:0.8rem;text-align:center;padding:16px 0;">No updates logged yet.</div>':
+      [...it.logs].reverse().map(l=>`<div class="log-item"><div class="log-date">${l.date}</div><div class="log-note">${esc(l.note)}</div></div>`).join(''));
+    document.getElementById('newLogEntry').value='';
+    document.getElementById('logModal').classList.remove('hidden');
+  }
+  function closeLogModal(){document.getElementById('logModal').classList.add('hidden');}
+  async function addLogEntry(){
+    const note=document.getElementById('newLogEntry').value.trim();if(!note)return;
+    const raw=items.find(i=>i.id===currentLogId);if(!raw)return;
+    const it=norm(raw);
+    const newLog={date:today.toISOString().slice(0,10),note};
+    it.logs.push(newLog);
+    // write back normalised logs to the item in memory
+    raw.logs = it.logs;
+    openLog(currentLogId); render();
+    try { await dbUpdate('action_items',currentLogId,{logs:JSON.stringify(it.logs)}); }
+    catch(e){ showDBError('Could not save update log.'); }
+  }
+
+  // ── AUTO-FILL RECIPIENTS ──
+  function getAutoRecipients(scope){
+    const scopedItems=getScopedItems(scope);
+    const emailSet=new Set();
+    const result=[];
+    scopedItems.forEach(it=>{
+      if(it.ownerEmail&&!emailSet.has(it.ownerEmail)){
+        const person=people.find(p=>p.email===it.ownerEmail);
+        result.push({name:person?person.name:it.owner,email:it.ownerEmail});
+        emailSet.add(it.ownerEmail);
+      }
+    });
+    return result;
+  }
+
+  function renderAutoToRow(){
+    const row=document.getElementById('autoToRow');
+    if(reminderTo.length===0){
+      row.innerHTML='<span style="font-size:0.75rem;color:var(--muted2);font-style:italic;">No registered owners found for this scope — add people via 👥 People</span>';
+      return;
+    }
+    row.innerHTML=reminderTo.map(p=>`
+      <span class="auto-tag">
+        ${esc(p.name)} &lt;${esc(p.email)}&gt;
+        <button class="auto-tag-remove" onclick="removeReminderTo('${esc(p.email)}')" title="Remove">✕</button>
+      </span>`).join('');
+  }
+  function removeReminderTo(email){
+    reminderTo=reminderTo.filter(p=>p.email!==email);
+    renderAutoToRow();generateReminder();
+  }
+
+  // ── REMINDER GENERATOR ──
+  function openReminderModal(){
+    document.getElementById('reminderModal').classList.remove('hidden');
+    reminderTo=getAutoRecipients(reminderScope);
+    renderAutoToRow();
+    generateReminder();
+  }
+  function closeReminderModal(){document.getElementById('reminderModal').classList.add('hidden');}
+  function switchReminderTab(tab){
+    reminderTab=tab;
+    document.querySelectorAll('.r-tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&tab==='email')||(i===1&&tab==='whatsapp')));
+    document.getElementById('outputLabel').textContent=tab==='email'?'Email Preview':'WhatsApp Message Preview';
+    const sendBtn=document.getElementById('sendBtn');
+    const hint=document.getElementById('actionHint');
+    const toLabel=document.getElementById('r-to-label');
+    if(tab==='email'){
+      sendBtn.textContent='↗ Open in Gmail';sendBtn.className='btn-action btn-gmail';
+      hint.textContent='Opens Gmail with To, Subject & Body pre-filled';
+      toLabel.textContent='To — auto-filled from owners';
+    } else {
+      sendBtn.textContent='↗ Open WhatsApp';sendBtn.className='btn-action btn-wa';
+      hint.textContent='Opens WhatsApp Web with message pre-loaded';
+      toLabel.textContent='Recipients (for message greeting)';
+    }
+    generateReminder();
+  }
+  function setScope(scope,el){
+    reminderScope=scope;
+    document.querySelectorAll('.scope-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+    reminderTo=getAutoRecipients(scope);
+    renderAutoToRow();
+    generateReminder();
+  }
+  function getScopedItems(scope){
+    const s=scope||reminderScope;
+    return items.filter(it=>{
+      if(s==='all-open')return it.status==='Open'||it.status==='In Progress';
+      if(s==='overdue'){const d=parseDate(it.due);return d&&d<today&&it.status!=='Done';}
+      if(s==='due-soon'){const d=parseDate(it.due);if(!d||it.status==='Done')return false;const diff=(d-today)/86400000;return diff>=0&&diff<=3;}
+      return false;
+    });
+  }
+
+  function generateReminder(){
+    const tone=document.getElementById('r-tone').value;
+    const recipientLabel=reminderTo.length>0?reminderTo.map(p=>p.name).join(', '):'Team';
+    const list=getScopedItems();
+    const box=document.getElementById('generatedText');
+    if(list.length===0){box.textContent='✓ No pending items match this filter. All clear!';return;}
+    const dateStr=today.toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'});
+    box.textContent=reminderTab==='email'?buildEmail(tone,recipientLabel,list,dateStr):buildWhatsApp(tone,recipientLabel,list,dateStr);
+  }
+
+  function buildEmail(tone,recipient,list,dateStr){
+    const S={professional:`Action Items — Status Update | ${dateStr}`,friendly:`Quick check-in on our open action items 👋`,urgent:`URGENT: Action Items Requiring Immediate Attention — ${dateStr}`,brief:`Open Actions — ${dateStr}`};
+    const O={professional:`Hi ${recipient},\n\nHope this finds you well. Following up on the action items below that are currently open or in progress. Request you to review and revert with a status update at the earliest.`,friendly:`Hi ${recipient},\n\nHope your week is going well! Just circling back on a few open things — keeping us on track 🙌`,urgent:`Hi ${recipient},\n\nUrgent follow-up on the action items below. These require your immediate attention and a response today.`,brief:`Hi ${recipient},\n\nQuick follow-up on open items:`};
+    const C={professional:`\nKindly revert with updated status or flag any blockers at the earliest.\n\nThank you,\nManvi\nChief of Staff | Rebel Foods`,friendly:`\nEven a quick one-liner update works! Let me know if you need anything unblocked.\n\nThanks,\nManvi`,urgent:`\nPlease respond with status by EOD. Escalate any blockers immediately.\n\nRegards,\nManvi\nChief of Staff | Rebel Foods`,brief:`\nPlease update by EOD.\nThanks, Manvi`};
+    let body=`${O[tone]}\n\n`;
+    const grouped={};
+    list.forEach(it=>{const key=it.owner;if(!grouped[key])grouped[key]=[];grouped[key].push(it);});
+    Object.entries(grouped).forEach(([owner,ownerItems])=>{
+      body+=`── ${owner} ──\n`;
+      ownerItems.forEach((it,i)=>{
+        const dc=dueCls(it.due,it.status);
+        const flag=dc==='overdue'?' [OVERDUE]':dc==='due-soon'?' [DUE SOON]':'';
+        body+=`${i+1}. ${it.action}\n   Status: ${it.status}${flag}`;
+        if(it.due)body+=` | Due: ${fmtDate(it.due)}`;
+        body+=` | Priority: ${it.priority}\n`;
+        if(it.comments)body+=`   Latest: ${it.comments}\n`;
+        body+='\n';
+      });
+    });
+    return `Subject: ${S[tone]}\n\n`+body+C[tone];
+  }
+
+  function buildWhatsApp(tone,recipient,list,dateStr){
+    const O={professional:`Hi ${recipient},\n\nFollowing up on pending action items — *${dateStr}*. Please review and share status:`,friendly:`Hey ${recipient}! 👋\n\nJust a nudge on a few open items as of *${dateStr}* 😊`,urgent:`Hi ${recipient},\n\n⚠️ *URGENT: Action items need your immediate attention* — *${dateStr}*`,brief:`Hi ${recipient}, open items as of *${dateStr}*:`};
+    const C={professional:`\nKindly confirm status or flag blockers.\n— Manvi`,friendly:`\nA one-line update is totally fine! 🙏\n— Manvi`,urgent:`\n❗ Please respond ASAP.\n— Manvi`,brief:`\nReply with status. Thanks — Manvi`};
+    let body=O[tone]+'\n\n';
+    list.forEach((it,i)=>{
+      const dc=dueCls(it.due,it.status);
+      const flag=dc==='overdue'?'🔴':dc==='due-soon'?'🟡':'⚪';
+      body+=`${flag} *${i+1}. ${it.action}*\n👤 ${it.owner} | ${it.status}`;
+      if(it.due)body+=` | Due: ${fmtDate(it.due)}`;
+      body+='\n';
+      if(it.comments)body+=`_${it.comments}_\n`;
+      body+='\n';
+    });
+    return body+C[tone];
+  }
+
+  function sendReminder(){
+    const text=document.getElementById('generatedText').textContent;
+    if(text.startsWith('✓'))return;
+    if(reminderTab==='email'){
+      const lines=text.split('\n');
+      let subject='Action Items Follow-up',body=text;
+      if(lines[0].startsWith('Subject: ')){subject=lines[0].replace('Subject: ','');body=lines.slice(2).join('\n');}
+      const toStr=reminderTo.map(p=>p.email).join(',');
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(toStr)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,'_blank');
+    } else {
+      window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(text)}`,'_blank');
+    }
+  }
+
+  function copyReminder(){
+    const text=document.getElementById('generatedText').textContent;
+    const btn=document.getElementById('copyBtn');
+    navigator.clipboard.writeText(text).catch(()=>{const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);});
+    btn.textContent='✓ Copied!';btn.classList.add('copied');
+    setTimeout(()=>{btn.textContent='Copy Text';btn.classList.remove('copied');},2000);
+  }
+
+  // ── MEETING MODE ──
+  let meetingRows = []; // [{id, action, ownerName, ownerEmail, due, priority, status, comments}]
+  let activeMeetingOwnerRowId = null;
+
+  function openMeetingMode(){
+    meetingRows = [];
+    document.getElementById('mp-meeting').value = '';
+    document.getElementById('mp-date').value = today.toISOString().slice(0,10);
+    document.getElementById('mp-default-status').value = 'Open';
+    document.getElementById('mp-default-priority').value = 'Medium';
+    updateMeetingHeader();
+    document.getElementById('meetingPane').classList.remove('hidden');
+    document.getElementById('savedBanner').classList.remove('show');
+    renderMeetingGrid();
+    // Add 3 starter rows
+    addMeetingRow(); addMeetingRow(); addMeetingRow();
+    // Focus first action cell
+    setTimeout(()=>{ const f=document.querySelector('.mg-action'); if(f) f.focus(); }, 80);
+  }
+
+  function updateMeetingHeader(){
+    const name = document.getElementById('mp-meeting').value.trim() || '—';
+    const dateVal = document.getElementById('mp-date').value;
+    document.getElementById('mp-meeting-display').textContent = name;
+    document.getElementById('mp-date-display').textContent = dateVal ? fmtDate(dateVal) : '—';
+  }
+
+  function addMeetingRow(focusNew){
+    const id = uid();
+    const defaultPriority = document.getElementById('mp-default-priority')?.value || 'Medium';
+    const defaultStatus = document.getElementById('mp-default-status')?.value || 'Open';
+    meetingRows.push({ id, action:'', ownerName:'', ownerEmail:'', due:'', priority: defaultPriority, status: defaultStatus, comments:'' });
+    renderMeetingGrid();
+    if (focusNew !== false){
+      setTimeout(()=>{
+        const input = document.getElementById('mg-action-'+id);
+        if (input){ input.focus(); input.scrollIntoView({block:'nearest'}); }
+      }, 40);
+    }
+    updateMeetingCount();
+  }
+
+  function renderMeetingGrid(){
+    const tbody = document.getElementById('meetingGridBody');
+    if (!tbody) return;
+    tbody.innerHTML = meetingRows.map((row, idx) => `
+      <tr id="mg-row-${row.id}">
+        <td class="mg-num">${idx+1}</td>
+        <td style="min-width:280px;">
+          <input class="mg-input mg-action" id="mg-action-${row.id}" type="text"
+            placeholder="What needs to be done…" value="${esc(row.action)}"
+            oninput="updateMeetingRow('${row.id}','action',this.value)"
+            onkeydown="mgKeydown(event,'${row.id}','action')" />
+        </td>
+        <td style="min-width:160px;" class="mg-owner-wrap">
+          <input class="mg-input" id="mg-owner-${row.id}" type="text"
+            placeholder="Owner…" value="${esc(row.ownerName)}" autocomplete="off"
+            oninput="mgFilterOwner('${row.id}',this.value)"
+            onfocus="mgShowOwnerDd('${row.id}')"
+            onkeydown="mgKeydown(event,'${row.id}','owner')" />
+          <div class="mg-owner-dd" id="mg-owner-dd-${row.id}"></div>
+        </td>
+        <td style="min-width:130px;">
+          <input class="mg-input" id="mg-due-${row.id}" type="date" value="${row.due||''}"
+            oninput="updateMeetingRow('${row.id}','due',this.value)"
+            onkeydown="mgKeydown(event,'${row.id}','due')" />
+        </td>
+        <td style="min-width:100px;">
+          <select class="mg-select" id="mg-priority-${row.id}"
+            onchange="updateMeetingRow('${row.id}','priority',this.value)"
+            onkeydown="mgKeydown(event,'${row.id}','priority')">
+            <option value="High" ${row.priority==='High'?'selected':''}>🔴 High</option>
+            <option value="Medium" ${row.priority==='Medium'?'selected':''}>🟡 Medium</option>
+            <option value="Low" ${row.priority==='Low'?'selected':''}>⚪ Low</option>
+          </select>
+        </td>
+        <td style="min-width:110px;">
+          <select class="mg-select" id="mg-status-${row.id}"
+            onchange="updateMeetingRow('${row.id}','status',this.value)"
+            onkeydown="mgKeydown(event,'${row.id}','status')">
+            <option value="Open" ${row.status==='Open'?'selected':''}>Open</option>
+            <option value="In Progress" ${row.status==='In Progress'?'selected':''}>In Progress</option>
+            <option value="Done" ${row.status==='Done'?'selected':''}>Done</option>
+          </select>
+        </td>
+        <td style="min-width:190px;">
+          <input class="mg-input" id="mg-comments-${row.id}" type="text"
+            placeholder="Remarks…" value="${esc(row.comments)}"
+            oninput="updateMeetingRow('${row.id}','comments',this.value)"
+            onkeydown="mgKeydown(event,'${row.id}','comments')" />
+        </td>
+        <td>
+          <button class="mg-del" onclick="deleteMeetingRow('${row.id}')" title="Remove row">✕</button>
+        </td>
+      </tr>`).join('');
+    updateMeetingCount();
+  }
+
+  function updateMeetingRow(id, field, value){
+    const row = meetingRows.find(r=>r.id===id); if(!row) return;
+    row[field] = value;
+    // live-update header count
+    updateMeetingCount();
+  }
+
+  function updateMeetingCount(){
+    const filled = meetingRows.filter(r=>r.action.trim()).length;
+    document.getElementById('mp-count').textContent = filled;
+    document.getElementById('mp-row-count').textContent = meetingRows.length;
+  }
+
+  function deleteMeetingRow(id){
+    meetingRows = meetingRows.filter(r=>r.id!==id);
+    renderMeetingGrid();
+  }
+
+  // Owner dropdown in meeting grid
+  function mgShowOwnerDd(rowId){
+    activeMeetingOwnerRowId = rowId;
+    mgFilterOwner(rowId, document.getElementById('mg-owner-'+rowId)?.value||'');
+  }
+  function mgFilterOwner(rowId, q){
+    const dd = document.getElementById('mg-owner-dd-'+rowId); if(!dd) return;
+    const lq = q.toLowerCase();
+    const matches = people.filter(p=>p.name.toLowerCase().includes(lq)||p.email.toLowerCase().includes(lq));
+    let html = matches.map(p=>`
+      <div class="owner-option" onmousedown="mgSelectOwner('${rowId}','${esc(p.name)}','${esc(p.email)}')">
+        <div class="owner-option-avatar">${initials(p.name)}</div>
+        <div class="owner-option-info">
+          <span class="owner-option-name">${esc(p.name)}</span>
+          <span class="owner-option-email">${esc(p.email)}</span>
+        </div>
+      </div>`).join('');
+    if (q && !people.find(p=>p.name.toLowerCase()===lq)){
+      html += `<div class="owner-option" onmousedown="mgSelectOwnerFree('${rowId}','${esc(q)}')">
+        <div class="owner-option-avatar" style="background:var(--muted2)">+</div>
+        <div class="owner-option-info"><span class="owner-option-add">Use "${esc(q)}"</span></div>
+      </div>`;
+    }
+    dd.innerHTML = html || '<div style="padding:10px 12px;font-size:0.75rem;color:var(--muted2)">No people found.</div>';
+    dd.classList.add('show');
+  }
+  function mgSelectOwner(rowId, name, email){
+    const row = meetingRows.find(r=>r.id===rowId); if(!row) return;
+    row.ownerName = name; row.ownerEmail = email;
+    const input = document.getElementById('mg-owner-'+rowId);
+    if(input) input.value = name;
+    document.getElementById('mg-owner-dd-'+rowId)?.classList.remove('show');
+    // Move focus to due date
+    document.getElementById('mg-due-'+rowId)?.focus();
+  }
+  function mgSelectOwnerFree(rowId, name){
+    const row = meetingRows.find(r=>r.id===rowId); if(!row) return;
+    row.ownerName = name; row.ownerEmail = '';
+    const input = document.getElementById('mg-owner-'+rowId);
+    if(input) input.value = name;
+    document.getElementById('mg-owner-dd-'+rowId)?.classList.remove('show');
+    document.getElementById('mg-due-'+rowId)?.focus();
+  }
+
+  // Keyboard navigation: Tab on last column of last row → add new row
+  const MG_COLS = ['action','owner','due','priority','status','comments'];
+  function mgKeydown(e, rowId, col){
+    if (e.key === 'Enter' || (e.key === 'Tab' && !e.shiftKey)){
+      const colIdx = MG_COLS.indexOf(col);
+      const rowIdx = meetingRows.findIndex(r=>r.id===rowId);
+      if (col === 'comments' || colIdx === MG_COLS.length-1){
+        // last column — move to next row's action, or add row
+        e.preventDefault();
+        if (rowIdx < meetingRows.length-1){
+          document.getElementById('mg-action-'+meetingRows[rowIdx+1].id)?.focus();
+        } else {
+          addMeetingRow(true);
+        }
+      }
+      // else let Tab move naturally between fields
+    }
+    if (e.key === 'Escape') closeMeetingOwnerDds();
+  }
+
+  function closeMeetingOwnerDds(){
+    document.querySelectorAll('.mg-owner-dd').forEach(d=>d.classList.remove('show'));
+  }
+
+  document.addEventListener('click', e=>{
+    if (!e.target.closest('.mg-owner-wrap')) closeMeetingOwnerDds();
+  });
+
+  async function saveMeetingItems(closeAfter){
+    const meetingName = document.getElementById('mp-meeting').value.trim();
+    const meetingDate = document.getElementById('mp-date').value;
+    if (!meetingName){ alert('Please enter a Meeting name before saving.'); document.getElementById('mp-meeting').focus(); return; }
+    const validRows = meetingRows.filter(r=>r.action.trim());
+    if (validRows.length === 0){ alert('No action items to save yet — add at least one row with an action.'); return; }
+
+    setLoading(true);
+    const banner = document.getElementById('savedBanner');
+    try {
+      for (const row of validRows){
+        const id = uid();
+        const newItem = {
+          id, action: row.action.trim(), meeting: meetingName,
+          meeting_date: meetingDate||null, owner: row.ownerName||'—',
+          owner_email: row.ownerEmail||'', due: row.due||null,
+          priority: row.priority, status: row.status,
+          comments: row.comments.trim(), notes: '', logs: '[]'
+        };
+        await dbInsert('action_items', newItem);
+        items.unshift({...newItem, meetingDate, ownerEmail: newItem.owner_email, logs:[]});
+      }
+      render();
+      banner.textContent = `✓ ${validRows.length} item${validRows.length>1?'s':''} saved to tracker`;
+      banner.classList.add('show');
+      setTimeout(()=>banner.classList.remove('show'), 3000);
+      // Clear saved rows from grid so you can keep adding new ones
+      meetingRows = meetingRows.filter(r=>!validRows.find(v=>v.id===r.id));
+      renderMeetingGrid();
+      if (closeAfter) document.getElementById('meetingPane').classList.add('hidden');
+    } catch(e){
+      showDBError('Could not save meeting items. Please try again.');
+      console.error(e);
+    }
+    setLoading(false);
+  }
+
+  function endMeeting(){
+    const filled = meetingRows.filter(r=>r.action.trim()).length;
+    if (filled > 0){
+      const confirmSave = confirm(`Save ${filled} unsaved action item${filled>1?'s':''} to the tracker before closing?`);
+      if (confirmSave){ saveMeetingItems(true); return; }
+    }
+    document.getElementById('meetingPane').classList.add('hidden');
+  }
+
+  // ── TOASTS ──
+  function checkReminders(){
+    const panel=document.getElementById('remindersPanel');
+    const ov=items.filter(i=>{const d=parseDate(i.due);return d&&d<today&&i.status!=='Done';});
+    const dt=items.filter(i=>{const d=parseDate(i.due);return d&&d.getTime()===today.getTime()&&i.status!=='Done';});
+    if(ov.length>0)addToast(panel,`⚠ ${ov.length} overdue item${ov.length>1?'s':''}`,ov.map(i=>i.action).slice(0,2).join('; '));
+    if(dt.length>0)addToast(panel,`📅 Due today: ${dt.length} item${dt.length>1?'s':''}`,dt.map(i=>i.action).slice(0,2).join('; '));
+  }
+  function addToast(panel,title,text){
+    const t=document.createElement('div');t.className='reminder-toast';
+    t.innerHTML=`<button class="reminder-dismiss" onclick="this.parentElement.remove()">✕</button><div class="reminder-title">${title}</div><div class="reminder-text">${text.slice(0,80)}${text.length>80?'…':''}</div>`;
+    panel.appendChild(t);setTimeout(()=>t.remove(),8000);
+  }
+
+  // ── INIT ──
+  checkRegister();
+  updateUserChip();
+  loadAll(); // loads from Supabase, then renders
+</script>
+</body>
+</html>
